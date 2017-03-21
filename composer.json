@@ -1,7 +1,7 @@
 {
-	"name": "laravel/laravel",
-	"description": "The Laravel Framework.",
-	"keywords": ["framework", "laravel"],
+	"name": "sayakb/sticky-notes",
+	"description": "Sticky notes is a free open-source pastebin application",
+	"keywords": ["pastebin"],
 	"require": {
 		"laravel/framework": "4.2.*",
 		"sayakb/akismet": "dev-master",
