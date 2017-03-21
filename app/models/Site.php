@@ -75,7 +75,7 @@ class Site extends Eloquent {
 					{
 						foreach ($siteConfig as $item)
 						{
-							$config[$item['group']]->$item['key'] = $item['value'];
+							$config[$item['group']]->{$item['key']} = $item['value'];
 						}
 					}
 				}
