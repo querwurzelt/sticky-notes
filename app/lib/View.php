@@ -276,7 +276,7 @@ class View extends \Illuminate\Support\Facades\View {
 							// evaluate to true
 							if ( ! is_null($flags))
 							{
-								$visible = ($visible OR ($flags->$components[1] == $value XOR $invert));
+								$visible = ($visible OR ($flags->{$components[1]} == $value XOR $invert));
 							}
 						}
 
