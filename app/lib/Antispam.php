@@ -18,7 +18,6 @@ use Akismet;
 use Input;
 use IPBan;
 use Lang;
-use Object;
 use Request;
 use Site;
 use stdClass;

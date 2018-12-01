@@ -6,7 +6,9 @@
 		"laravel/framework": "4.2.*",
 		"sayakb/akismet": "dev-master",
 		"sayakb/captcha": "dev-master",
-		"rmccue/requests": ">=1.0"
+		"rmccue/requests": ">=1.0",
+		"phpseclib/phpseclib": "2.0.*",
+		"phpseclib/mcrypt_compat": "1.0.*"
 	},
 	"autoload": {
 		"classmap": [
