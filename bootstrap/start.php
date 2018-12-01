@@ -54,7 +54,7 @@ $app->bindInstallPaths(require __DIR__.'/paths.php');
 |
 */
 
-$framework = $app['path.base'].'/vendor/laravel/framework/src';
+$framework = $app['path.base'].'/vendor/laravel42_mcrypt_compat/framework/src';
 
 require $framework.'/Illuminate/Foundation/start.php';
 
