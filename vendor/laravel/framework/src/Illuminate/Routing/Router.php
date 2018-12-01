@@ -503,6 +503,11 @@ class Router implements HttpKernelInterface, RouteFiltererInterface {
 	{
 		$group = str_replace('/', '.', $this->getLastGroupPrefix());
 
+		if (empty($group))
+		{
+			return trim("{$prefix}{$resource}.{$method}", '.');
+		}
+
 		return trim("{$prefix}{$group}.{$resource}.{$method}", '.');
 	}
 
@@ -845,9 +850,9 @@ class Router implements HttpKernelInterface, RouteFiltererInterface {
 	/**
 	 * Create a new Route object.
 	 *
-	 * @param  array|string $methods
+	 * @param  array|string  $methods
 	 * @param  string  $uri
-	 * @param  mixed  $action
+	 * @param  mixed   $action
 	 * @return \Illuminate\Routing\Route
 	 */
 	protected function newRoute($methods, $uri, $action)

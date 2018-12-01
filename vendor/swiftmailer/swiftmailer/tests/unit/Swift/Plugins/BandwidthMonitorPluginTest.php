@@ -2,20 +2,24 @@
 
 class Swift_Plugins_BandwidthMonitorPluginTest extends \PHPUnit_Framework_TestCase
 {
-    public function setUp()
+    private $_monitor;
+
+    private $_bytes = 0;
+
+    protected function setUp()
     {
         $this->_monitor = new Swift_Plugins_BandwidthMonitorPlugin();
     }
 
     public function testBytesOutIncreasesWhenCommandsSent()
     {
-        $evt = $this->_createCommandEvent("RCPT TO: <foo@bar.com>\r\n");
+        $evt = $this->_createCommandEvent("RCPT TO:<foo@bar.com>\r\n");
 
         $this->assertEquals(0, $this->_monitor->getBytesOut());
         $this->_monitor->commandSent($evt);
-        $this->assertEquals(24, $this->_monitor->getBytesOut());
+        $this->assertEquals(23, $this->_monitor->getBytesOut());
         $this->_monitor->commandSent($evt);
-        $this->assertEquals(48, $this->_monitor->getBytesOut());
+        $this->assertEquals(46, $this->_monitor->getBytesOut());
     }
 
     public function testBytesInIncreasesWhenResponsesReceived()
@@ -39,13 +43,13 @@ class Swift_Plugins_BandwidthMonitorPluginTest extends \PHPUnit_Framework_TestCa
         $this->_monitor->responseReceived($evt);
         $this->assertEquals(16, $this->_monitor->getBytesIn());
 
-        $evt = $this->_createCommandEvent("RCPT TO: <foo@bar.com>\r\n");
+        $evt = $this->_createCommandEvent("RCPT TO:<foo@bar.com>\r\n");
 
         $this->assertEquals(0, $this->_monitor->getBytesOut());
         $this->_monitor->commandSent($evt);
-        $this->assertEquals(24, $this->_monitor->getBytesOut());
+        $this->assertEquals(23, $this->_monitor->getBytesOut());
         $this->_monitor->commandSent($evt);
-        $this->assertEquals(48, $this->_monitor->getBytesOut());
+        $this->assertEquals(46, $this->_monitor->getBytesOut());
 
         $this->_monitor->reset();
 
@@ -64,8 +68,6 @@ class Swift_Plugins_BandwidthMonitorPluginTest extends \PHPUnit_Framework_TestCa
         $this->_monitor->sendPerformed($evt);
         $this->assertEquals(12, $this->_monitor->getBytesOut());
     }
-
-    // -- Creation Methods
 
     private function _createSendEvent($message)
     {
@@ -106,7 +108,7 @@ class Swift_Plugins_BandwidthMonitorPluginTest extends \PHPUnit_Framework_TestCa
     private function _createMessageWithByteCount($bytes)
     {
         $this->_bytes = $bytes;
-        $msg = $this->getMock('Swift_Mime_Message');
+        $msg = $this->getMockBuilder('Swift_Mime_Message')->getMock();
         $msg->expects($this->any())
             ->method('toByteStream')
             ->will($this->returnCallback(array($this, '_write')));
@@ -117,7 +119,6 @@ class Swift_Plugins_BandwidthMonitorPluginTest extends \PHPUnit_Framework_TestCa
         return $msg;
     }
 
-    private $_bytes = 0;
     public function _write($is)
     {
         for ($i = 0; $i < $this->_bytes; ++$i) {

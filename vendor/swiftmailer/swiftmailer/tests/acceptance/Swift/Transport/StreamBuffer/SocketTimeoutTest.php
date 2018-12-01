@@ -4,9 +4,11 @@ class Swift_Transport_StreamBuffer_SocketTimeoutTest extends \PHPUnit_Framework_
 {
     protected $_buffer;
 
+    protected $_randomHighPort;
+
     protected $_server;
 
-    public function setUp()
+    protected function setUp()
     {
         if (!defined('SWIFT_SMTP_HOST')) {
             $this->markTestSkipped(
@@ -16,8 +18,8 @@ class Swift_Transport_StreamBuffer_SocketTimeoutTest extends \PHPUnit_Framework_
         }
 
         $serverStarted = false;
-        for ($i = 0; $i<5; ++$i) {
-            $this->_randomHighPort = rand(50000,65000);
+        for ($i = 0; $i < 5; ++$i) {
+            $this->_randomHighPort = rand(50000, 65000);
             $this->_server = stream_socket_server('tcp://127.0.0.1:'.$this->_randomHighPort);
             if ($this->_server) {
                 $serverStarted = true;
@@ -25,7 +27,7 @@ class Swift_Transport_StreamBuffer_SocketTimeoutTest extends \PHPUnit_Framework_
         }
 
         $this->_buffer = new Swift_Transport_StreamBuffer(
-            $this->getMock('Swift_ReplacementFilterFactory')
+            $this->getMockBuilder('Swift_ReplacementFilterFactory')->getMock()
         );
     }
 
@@ -41,7 +43,7 @@ class Swift_Transport_StreamBuffer_SocketTimeoutTest extends \PHPUnit_Framework_
             'protocol' => 'tcp',
             'blocking' => 1,
             'timeout' => 1,
-            ));
+        ));
     }
 
     public function testTimeoutException()
@@ -52,11 +54,11 @@ class Swift_Transport_StreamBuffer_SocketTimeoutTest extends \PHPUnit_Framework_
             $line = $this->_buffer->readLine(0);
         } catch (Exception $e) {
         }
-        $this->assertInstanceof('Swift_IoException', $e, 'IO Exception Not Thrown On Connection Timeout');
+        $this->assertInstanceOf('Swift_IoException', $e, 'IO Exception Not Thrown On Connection Timeout');
         $this->assertRegExp('/Connection to .* Timed Out/', $e->getMessage());
     }
 
-    public function tearDown()
+    protected function tearDown()
     {
         if ($this->_server) {
             stream_socket_shutdown($this->_server, STREAM_SHUT_RDWR);

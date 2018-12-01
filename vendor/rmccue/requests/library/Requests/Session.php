@@ -175,7 +175,7 @@ class Requests_Session {
 	 * Note: Unlike {@see post} and {@see put}, `$headers` is required, as the
 	 * specification recommends that should send an ETag
 	 *
-	 * @link http://tools.ietf.org/html/rfc5789
+	 * @link https://tools.ietf.org/html/rfc5789
 	 */
 	public function patch($url, $headers, $data = array(), $options = array()) {
 		return $this->request($url, $headers, $data, Requests::PATCH, $options);
@@ -194,7 +194,7 @@ class Requests_Session {
 	 *
 	 * @param string $url URL to request
 	 * @param array $headers Extra headers to send with the request
-	 * @param array $data Data to send either as a query string for GET/HEAD requests, or in the body for POST requests
+	 * @param array|null $data Data to send either as a query string for GET/HEAD requests, or in the body for POST requests
 	 * @param string $type HTTP request type (use Requests constants)
 	 * @param array $options Options for the request (see {@see Requests::request})
 	 * @return Requests_Response
@@ -239,10 +239,18 @@ class Requests_Session {
 			$request['url'] = Requests_IRI::absolutize($this->url, $request['url']);
 			$request['url'] = $request['url']->uri;
 		}
-		
+
+		if (empty($request['headers'])) {
+			$request['headers'] = array();
+		}
 		$request['headers'] = array_merge($this->headers, $request['headers']);
 
-		if (is_array($request['data']) && is_array($this->data)) {
+		if (empty($request['data'])) {
+			if (is_array($this->data)) {
+				$request['data'] = $this->data;
+			}
+		}
+		elseif (is_array($request['data']) && is_array($this->data)) {
 			$request['data'] = array_merge($this->data, $request['data']);
 		}
 
@@ -252,7 +260,7 @@ class Requests_Session {
 			// Disallow forcing the type, as that's a per request setting
 			unset($request['options']['type']);
 		}
-		
+
 		return $request;
 	}
 }

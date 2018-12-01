@@ -503,8 +503,6 @@ class Swift_Transport_FailoverTransportTest extends \SwiftMailerTestCase
         $transport->registerPlugin($plugin);
     }
 
-    // -- Private helpers
-
     private function _getTransport(array $transports)
     {
         $transport = new Swift_Transport_FailoverTransport();
@@ -516,10 +514,5 @@ class Swift_Transport_FailoverTransportTest extends \SwiftMailerTestCase
     private function _createPlugin()
     {
         return $this->getMockery('Swift_Events_EventListener');
-    }
-
-    private function _createInnerTransport()
-    {
-        return $this->getMockery('Swift_Transport');
     }
 }

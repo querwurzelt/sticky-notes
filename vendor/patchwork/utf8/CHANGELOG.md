@@ -1,3 +1,95 @@
+## v1.3.1 (2016-05-18)
+
+- Normalizer fixes from @gitlost
+- fix tests for php 5.5.35/5.6.21/7.0.6
+
+## v1.3.0 (2015-12-15)
+
+- add shim for mb_convert_variables
+- marked all shims as @internal
+- test on appveyor
+- a few fixes in iconv and mbstring shims
+- cleanup refacto for preparing v2 based on symfony-polyfill
+
+## v1.2.6 (2015-12-15)
+
+- fix compat with symfony-polyfill
+
+## v1.2.5 (2015-10-14)
+
+- handle the third argument of mb_convert_encoding() being an array
+- add license files
+
+## v1.2.4 (2015-06-29)
+
+- trigger silenced deprecation notices when shims are in use
+- fix mb_strrpos() shim registration
+- fix .gitattributes
+
+## v1.2.3 (2015-06-25)
+
+- fix mb_strrpos shim with negative offset
+- sync tests with latest PHP/HHVM behaviors
+- remove PHP7/HHVM from allowed failures
+- move to PSR-1+2+4
+- mv class/ src/
+
+## v1.2.2 (2015-04-26)
+
+- Fix ucwords to be functionally the same as in-built PHP version
+- Fix iconv_set_encoding deprecation notice in PHP 5.6.0
+- remove legacy test for HHVM/PHP7
+- mb_parse_str() should have no return value
+
+## v1.2.1 (2015-01-28)
+
+- fix double declaration in mbstring shim
+
+## v1.2.0 (2015-01-12)
+
+- add u::strwidth() to get the width of a string when printed on a terminal
+- add more mbstring shims
+- add a note about https://bugs.php.net/65358
+- fail properly when COM is not loaded
+- fallback on stat() when lstat() fails
+
+## v1.2.0-beta (2014-08-05)
+
+- add best-fit mappings for UTF-8 to Code Page approximations
+- add portable Unicode filesystem access under Windows and other OSes
+
+## v1.1.31 (2015-12-15)
+
+- fix compat with symfony-polyfill
+
+## v1.1.30 (2015-06-29)
+
+- fix mb_strrpos shim with negative offset
+
+## v1.1.29 (2015-04-26)
+
+- fix ucwords to be functionally the same as in-built PHP version
+- fix iconv_set_encoding deprecation notice in PHP 5.6.0
+- remove legacy test for HHVM/PHP7
+
+## v1.1.28 (2015-01-12)
+
+- fix mbstring shim for html-entities
+
+## v1.1.27 (2015-01-11)
+
+- update to Unicode 7.0
+- fix iconv shim compat layer
+
+## v1.1.26 (2014-11-08)
+
+- tweak composer.json
+
+## v1.1.25 (2014-08-05)
+
+- update travis matrix
+- add composer branch alias
+
 ## v1.1.24 (2014-06-17)
 
 - update tests for latest HHVM fixes

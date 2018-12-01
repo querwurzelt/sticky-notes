@@ -444,7 +444,7 @@ class Connection implements ConnectionInterface {
 	 * @param  \Closure  $callback
 	 * @return mixed
 	 *
-	 * @throws \Exception
+	 * @throws \Throwable
 	 */
 	public function transaction(Closure $callback)
 	{
@@ -464,6 +464,12 @@ class Connection implements ConnectionInterface {
 		// up in the database. Then we'll re-throw the exception so it can
 		// be handled how the developer sees fit for their applications.
 		catch (\Exception $e)
+		{
+			$this->rollBack();
+
+			throw $e;
+		}
+		catch (\Throwable $e)
 		{
 			$this->rollBack();
 
@@ -709,7 +715,7 @@ class Connection implements ConnectionInterface {
 	 *
 	 * @param  string  $query
 	 * @param  array   $bindings
-	 * @param  $time
+	 * @param  float|null  $time
 	 * @return void
 	 */
 	public function logQuery($query, $bindings, $time = null)
@@ -831,6 +837,9 @@ class Connection implements ConnectionInterface {
 	 */
 	public function setPdo($pdo)
 	{
+		if ($this->transactions >= 1)
+			throw new \RuntimeException("Can't swap PDO instance while within transaction.");
+
 		$this->pdo = $pdo;
 
 		return $this;

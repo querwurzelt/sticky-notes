@@ -4,7 +4,7 @@ class Swift_Transport_Esmtp_Auth_PlainAuthenticatorTest extends \SwiftMailerTest
 {
     private $_agent;
 
-    public function setUp()
+    protected function setUp()
     {
         $this->_agent = $this->getMockery('Swift_Transport_SmtpAgent')->shouldIgnoreMissing();
     }
@@ -50,7 +50,7 @@ class Swift_Transport_Esmtp_Auth_PlainAuthenticatorTest extends \SwiftMailerTest
              ->with('AUTH PLAIN '.base64_encode(
                         'jack'.chr(0).'jack'.chr(0).'pass'
                     )."\r\n", array(235))
-             ->andThrow(new Swift_TransportException(""));
+             ->andThrow(new Swift_TransportException(''));
         $this->_agent->shouldReceive('executeCommand')
              ->once()
              ->with("RSET\r\n", array(250));
@@ -59,8 +59,6 @@ class Swift_Transport_Esmtp_Auth_PlainAuthenticatorTest extends \SwiftMailerTest
             '%s: Authentication fails, so RSET should be sent'
             );
     }
-
-    // -- Private helpers
 
     private function _getAuthenticator()
     {

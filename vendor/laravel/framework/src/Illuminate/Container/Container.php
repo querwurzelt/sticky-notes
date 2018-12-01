@@ -81,7 +81,7 @@ class Container implements ArrayAccess {
 	/**
 	 * Determine if the given abstract type has been resolved.
 	 *
-	 * @param  string $abstract
+	 * @param  string  $abstract
 	 * @return bool
 	 */
 	public function resolved($abstract)
@@ -837,7 +837,7 @@ class Container implements ArrayAccess {
 	 */
 	public function offsetUnset($key)
 	{
-		unset($this->bindings[$key], $this->instances[$key]);
+		unset($this->bindings[$key], $this->instances[$key], $this->resolved[$key]);
 	}
 
 	/**

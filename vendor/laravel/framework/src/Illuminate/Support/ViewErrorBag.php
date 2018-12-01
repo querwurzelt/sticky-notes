@@ -34,6 +34,16 @@ class ViewErrorBag implements Countable {
 	}
 
 	/**
+	 * Get all the bags.
+	 *
+	 * @return array
+	 */
+	public function getBags()
+	{
+		return $this->bags;
+	}
+
+	/**
 	 * Add a new MessageBag instance to the bags.
 	 *
 	 * @param  string  $key
