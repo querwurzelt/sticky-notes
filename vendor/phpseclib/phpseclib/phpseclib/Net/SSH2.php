@@ -104,6 +104,7 @@ class SSH2
     const CHANNEL_SHELL         = 2;
     const CHANNEL_SUBSYSTEM     = 3;
     const CHANNEL_AGENT_FORWARD = 4;
+    const CHANNEL_KEEP_ALIVE    = 5;
     /**#@-*/
 
     /**#@+
@@ -145,7 +146,10 @@ class SSH2
      */
     const READ_REGEX = 2;
     /**
-     * Returns when a string matching the regular expression $expect is found
+     * Returns whenever a data packet is received.
+     *
+     * Some data packets may only contain a single character so it may be necessary
+     * to call read() multiple times when using this option
      */
     const READ_NEXT = 3;
     /**#@-*/
@@ -1819,8 +1823,13 @@ class SSH2
         }
 
         if ($public_key_format != $expected_key_format || $this->signature_format != $server_host_key_algorithm) {
-            user_error('Server Host Key Algorithm Mismatch');
-            return $this->_disconnect(NET_SSH2_DISCONNECT_KEY_EXCHANGE_FAILED);
+            switch (true) {
+                case $this->signature_format == $server_host_key_algorithm:
+                case $server_host_key_algorithm != 'rsa-sha2-256' && $server_host_key_algorithm != 'rsa-sha2-512':
+                case $this->signature_format != 'ssh-rsa':
+                    user_error('Server Host Key Algorithm Mismatch');
+                    return $this->_disconnect(NET_SSH2_DISCONNECT_KEY_EXCHANGE_FAILED);
+            }
         }
 
         $packet = pack(
@@ -2587,6 +2596,21 @@ class SSH2
             $publickey['n']
         );
 
+        switch ($this->signature_format) {
+            case 'rsa-sha2-512':
+                $hash = 'sha512';
+                $signatureType = 'rsa-sha2-512';
+                break;
+            case 'rsa-sha2-256':
+                $hash = 'sha256';
+                $signatureType = 'rsa-sha2-256';
+                break;
+            //case 'ssh-rsa':
+            default:
+                $hash = 'sha1';
+                $signatureType = 'ssh-rsa';
+        }
+
         $part1 = pack(
             'CNa*Na*Na*',
             NET_SSH2_MSG_USERAUTH_REQUEST,
@@ -2597,7 +2621,7 @@ class SSH2
             strlen('publickey'),
             'publickey'
         );
-        $part2 = pack('Na*Na*', strlen('ssh-rsa'), 'ssh-rsa', strlen($publickey), $publickey);
+        $part2 = pack('Na*Na*', strlen($signatureType), $signatureType, strlen($publickey), $publickey);
 
         $packet = $part1 . chr(0) . $part2;
         if (!$this->_send_binary_packet($packet)) {
@@ -2638,23 +2662,9 @@ class SSH2
 
         $packet = $part1 . chr(1) . $part2;
         $privatekey->setSignatureMode(RSA::SIGNATURE_PKCS1);
-        switch ($this->signature_format) {
-            case 'rsa-sha2-512':
-                $hash = 'sha512';
-                $type = 'rsa-sha2-512';
-                break;
-            case 'rsa-sha2-256':
-                $hash = 'sha256';
-                $type = 'rsa-sha2-256';
-                break;
-            //case 'ssh-rsa':
-            default:
-                $hash = 'sha1';
-                $type = 'ssh-rsa';
-        }
         $privatekey->setHash($hash);
         $signature = $privatekey->sign(pack('Na*a*', strlen($this->session_id), $this->session_id, $packet));
-        $signature = pack('Na*Na*', strlen($type), $type, strlen($signature), $signature);
+        $signature = pack('Na*Na*', strlen($signatureType), $signatureType, strlen($signature), $signature);
         $packet.= pack('Na*', strlen($signature), $signature);
 
         if (!$this->_send_binary_packet($packet)) {
@@ -3259,15 +3269,15 @@ class SSH2
             return false;
         }
 
-        $this->window_size_server_to_client[NET_SSH2_CHANNEL_KEEP_ALIVE] = $this->window_size;
+        $this->window_size_server_to_client[self::CHANNEL_KEEP_ALIVE] = $this->window_size;
         $packet_size = 0x4000;
         $packet = pack(
             'CNa*N3',
             NET_SSH2_MSG_CHANNEL_OPEN,
             strlen('session'),
             'session',
-            NET_SSH2_CHANNEL_KEEP_ALIVE,
-            $this->window_size_server_to_client[NET_SSH2_CHANNEL_KEEP_ALIVE],
+            self::CHANNEL_KEEP_ALIVE,
+            $this->window_size_server_to_client[self::CHANNEL_KEEP_ALIVE],
             $packet_size
         );
 
@@ -3275,11 +3285,11 @@ class SSH2
             return $this->_reconnect();
         }
 
-        $this->channel_status[NET_SSH2_CHANNEL_KEEP_ALIVE] = NET_SSH2_MSG_CHANNEL_OPEN;
+        $this->channel_status[self::CHANNEL_KEEP_ALIVE] = NET_SSH2_MSG_CHANNEL_OPEN;
 
-        $response = @$this->_get_channel_packet(NET_SSH2_CHANNEL_KEEP_ALIVE);
+        $response = @$this->_get_channel_packet(self::CHANNEL_KEEP_ALIVE);
         if ($response !== false) {
-            $this->_close_channel(NET_SSH2_CHANNEL_KEEP_ALIVE);
+            $this->_close_channel(self::CHANNEL_KEEP_ALIVE);
             return true;
         }
 
@@ -3300,7 +3310,7 @@ class SSH2
             return false;
         }
         foreach ($this->auth as $auth) {
-            $result = call_user_func_array(array(&$this, 'parent::login'), $auth);
+            $result = call_user_func_array(array(&$this, 'login'), $auth);
         }
         return $result;
     }
@@ -3335,8 +3345,8 @@ class SSH2
     function _get_binary_packet($skip_channel_filter = false)
     {
         if (!is_resource($this->fsock) || feof($this->fsock)) {
-            user_error('Connection closed prematurely');
             $this->bitmap = 0;
+            user_error('Connection closed prematurely');
             return false;
         }
 
@@ -3379,8 +3389,8 @@ class SSH2
         while ($remaining_length > 0) {
             $temp = stream_get_contents($this->fsock, $remaining_length);
             if ($temp === false || feof($this->fsock)) {
-                user_error('Error reading from socket');
                 $this->bitmap = 0;
+                user_error('Error reading from socket');
                 return false;
             }
             $buffer.= $temp;
@@ -3398,8 +3408,8 @@ class SSH2
         if ($this->hmac_check !== false) {
             $hmac = stream_get_contents($this->fsock, $this->hmac_size);
             if ($hmac === false || strlen($hmac) != $this->hmac_size) {
-                user_error('Error reading socket');
                 $this->bitmap = 0;
+                user_error('Error reading socket');
                 return false;
             } elseif ($hmac != $this->hmac_check->hash(pack('NNCa*', $this->get_seq_no, $packet_length, $padding_length, $payload . $padding))) {
                 user_error('Invalid HMAC');
@@ -3682,7 +3692,12 @@ class SSH2
                 $response = $this->binary_packet_buffer;
                 $this->binary_packet_buffer = false;
             } else {
-                if ($this->curTimeout) {
+                $read = array($this->fsock);
+                $write = $except = null;
+
+                if (!$this->curTimeout) {
+                    @stream_select($read, $write, $except, null);
+                } else {
                     if ($this->curTimeout < 0) {
                         $this->is_timeout = true;
                         return true;
@@ -3936,8 +3951,8 @@ class SSH2
     function _send_binary_packet($data, $logged = null)
     {
         if (!is_resource($this->fsock) || feof($this->fsock)) {
-            user_error('Connection closed prematurely');
             $this->bitmap = 0;
+            user_error('Connection closed prematurely');
             return false;
         }
 

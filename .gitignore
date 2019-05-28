@@ -1,2 +1,3 @@
+composer.phar
 app/config/database.php
 bootstrap/compiled.php

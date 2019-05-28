@@ -154,8 +154,8 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
                 }
                 break;
             case 'RC2':
-                if ($length > 56) {
-                    $length = 56;
+                if ($length > 128) {
+                    $length = 128;
                 }
                 break;
             case 'RC4':
@@ -1111,7 +1111,9 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
                 if ($this->block_mode) {
                     $bucket->data = $this->buffer . $bucket->data;
                     $extra = strlen($bucket->data) % $this->block_length;
-                    if ($extra) {
+                    if (!$extra) {
+                        $this->buffer = '';
+                    } else {
                         $this->buffer = substr($bucket->data, -$extra);
                         $bucket->data = substr($bucket->data, 0, -$extra);
                     }
